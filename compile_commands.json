@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/deanwilson/development/projects/UmbraTest/build",
+  "command": "/usr/bin/cc  -I/Users/deanwilson/development/projects/UmbraTest/include -std=c17 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/umbra_test.dir/src/umbra_test.c.o -c /Users/deanwilson/development/projects/UmbraTest/src/umbra_test.c",
+  "file": "/Users/deanwilson/development/projects/UmbraTest/src/umbra_test.c",
+  "output": "CMakeFiles/umbra_test.dir/src/umbra_test.c.o"
+}
+]
