@@ -18,6 +18,8 @@ void test_runner_init(TestRunner* runner);
 TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* registry);
 void run_one(TestRunner* runner, const char* group_name, const TestCase* test, TestRunSummary* summary);
 void test_fail(const char* file, int line, const char* fmt, ...);
+void set_current_group(const char* groupName);
+void clear_current_group(void);
 
 #ifdef __cplusplus
 }
