@@ -63,11 +63,13 @@ endif()
 # -------------------------
 # Test executable
 # -------------------------
-option(UMBRATEST_BUILD_TESTS "Build UmbraTest tests" OFF)
+option(UMBRATEST_BUILD_TESTS "Build UmbraTest tests" ON)
 
 if(UMBRATEST_BUILD_TESTS)
+  enable_language(CXX)
   add_executable(test_UmbraTest
     test/test_main.cpp
+    test/example.test.cpp
   )
   target_link_libraries(test_UmbraTest PRIVATE umbra_test)
 

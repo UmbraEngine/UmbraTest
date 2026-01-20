@@ -7,15 +7,14 @@ extern "C" {
 #endif
 
 typedef void (*TestCaseFn)(void* user);
+typedef void (*TestTeardownFn)(void* user);
 
 typedef struct {
   const char* name;
   TestCaseFn fn;
   void* user;
+  TestTeardownFn teardown;
 } TestCase;
-
-
-void run_tests(void);
 
 #ifdef __cplusplus
 }

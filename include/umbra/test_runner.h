@@ -12,14 +12,25 @@ typedef struct {
   int failed;
 } TestRunSummary;
 
-typedef struct TestRunner TestRunner;
+typedef struct {
+  int in_test;
+
+  const char* current_group;
+  const char* current_test;
+
+  int current_failures;
+  int total_failures;
+} TestRunner;
 
 void test_runner_init(TestRunner* runner);
 TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* registry);
-void run_one(TestRunner* runner, const char* group_name, const TestCase* test, TestRunSummary* summary);
+void run_one(
+    TestRunner* runner,
+    const TestGroup* group,
+    const TestCase* test,
+    TestRunSummary* summary
+);
 void test_fail(const char* file, int line, const char* fmt, ...);
-void set_current_group(const char* groupName);
-void clear_current_group(void);
 
 #ifdef __cplusplus
 }

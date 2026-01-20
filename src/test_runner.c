@@ -4,22 +4,24 @@
 #include <stdarg.h>
 #include <string.h>
 
-struct TestRunner {
-  int in_test;
-
-  const char* current_group;
-  const char* current_test;
-
-  int current_failures;
-  int total_failures;
-};
 
 static TestRunner* g_runner = NULL;
-static char* current_group = NULL;
 
-void test_runner_init(TestRunner* registry)
+static void begin_context(TestRunner* runner, const char* group_name, const char* test_name)
 {
-  memset(registry, 0, sizeof(*registry));
+  runner->current_group = group_name;
+  runner->current_test = test_name;
+  runner->in_test = 1;
+}
+
+static void end_context(TestRunner* runner)
+{
+  runner->in_test = 0;
+}
+
+void test_runner_init(TestRunner* runner)
+{
+  memset(runner, 0, sizeof(*runner));
 }
 
 void test_fail(const char* file, int line, const char* fmt, ...)
@@ -50,45 +52,63 @@ void test_fail(const char* file, int line, const char* fmt, ...)
 
 void run_one(
     TestRunner* runner,
-    const char* group_name,
+    const TestGroup* group,
     const TestCase* test,
     TestRunSummary* summary
 )
 {
-  runner->current_group = group_name;
-  runner->current_test = test->name;
   runner->current_failures = 0;
 
-  runner->in_test = 1;
+  if (group->before_each) {
+    begin_context(runner, group->name, "(before_each)");
+    group->before_each(group->hook_user);
+    end_context(runner);
+  }
+
+  begin_context(runner, group->name, test->name);
   test->fn(test->user);
-  runner->in_test = 0;
+  end_context(runner);
+
+  if (group->after_each) {
+    begin_context(runner, group->name, "(after_each)");
+    group->after_each(group->hook_user);
+    end_context(runner);
+  }
 
   summary->total += 1;
-  // TODO: I think this might be a bug. Will have to test the behaviour when running the tests
-  // if a single test has failed, will all subsequent tests fail because of this check?
   if (runner->current_failures > 0) {
     summary->failed += 1;
     fprintf(
-        stderr, "FAILED [%s] %s (%d failures)\n", check_group_name(group_name), test->name,
+        stderr, "FAILED [%s] %s (%d failures)\n", check_group_name(group->name), test->name,
         runner->current_failures
     );
   }
   else {
     summary->passed += 1;
-    printf("PASS [%s] %s\n", check_group_name(group_name), test->name);
+    printf("PASS [%s] %s\n", check_group_name(group->name), test->name);
   }
 }
 
 TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* registry)
 {
-  TestRunSummary summary = {0, 0, 0};
+  TestRunSummary summary = {0};
   g_runner = runner;
 
   for (size_t gi = 0; gi < registry->count; ++gi) {
     const TestGroup* group = &registry->groups[gi];
     printf("\n[%s]\n", group->name);
+    if (group->before_all) {
+      begin_context(runner, group->name, "(after_all)");
+      group->before_all(group->hook_user);
+      end_context(runner);
+    }
     for (size_t ti = 0; ti < group->count; ++ti) {
-      run_one(runner, group->name, &group->tests[ti], &summary);
+      begin_context(runner, group->name, "(after_all)");
+      run_one(runner, group, &group->tests[ti], &summary);
+      end_context(runner);
+    }
+    if (group->after_all) {
+      group->after_all(group->hook_user);
     }
   }
 
@@ -99,16 +119,3 @@ TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* regis
   );
   return summary;
 }
-
-void set_current_group(const char* group)
-{
-  free(current_group);
-  current_group = strdup(group);
-}
-
-void clear_current_group(void)
-{
-  free(current_group);
-  current_group = NULL;
-}
-
