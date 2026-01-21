@@ -7,26 +7,20 @@ extern "C" {
 #include "test_group.h"
 }
 
-#define UMBRA_CAT2(a, b) a##b
-#define UMBRA_CAT(a, b) UMBRA_CAT2(a, b)
+/* ################################# */
+/* ========= DESCRIBE: ============ */
+/* ################################# */
 
-/*
-  File-scope safe C++ auto-registration:
-
-  DESCRIBE expands to:
-    - a unique static function: void _umbra_desc_body_LINE()
-    - a static bool whose initializer calls that function (runs before main)
-  Inside the function body we have normal block scope, so TEST/HOOK macros
-  can be statement macros and can use lambdas as function pointers.
-*/
+#define MACRO_CAT2(a, b) a##b
+#define MACRO_CAT(a, b) MACRO_CAT2(a, b)
 
 #define DESCRIBE(group_name, BODY)                                                                 \
-  static void UMBRA_CAT(_umbra_desc_body_, __LINE__)();                                            \
-  static const bool UMBRA_CAT(_umbra_desc_reg_, __LINE__) = []() {                                 \
-    UMBRA_CAT(_umbra_desc_body_, __LINE__)();                                                      \
+  static void MACRO_CAT(_test_framework_desc_body_, __LINE__)();                                   \
+  static const bool MACRO_CAT(_test_framework_desc_reg_, __LINE__) = []() {                        \
+    MACRO_CAT(_test_framework_desc_body_, __LINE__)();                                             \
     return true;                                                                                   \
   }();                                                                                             \
-  static void UMBRA_CAT(_umbra_desc_body_, __LINE__)()                                             \
+  static void MACRO_CAT(_test_framework_desc_body_, __LINE__)()                                    \
   {                                                                                                \
     TestRegistry* _test_registry = test_default_registry();                                        \
     TestGroup* _test_group = test_registry_get_group(_test_registry, (group_name));                \
@@ -35,7 +29,10 @@ extern "C" {
     BODY                                                                                           \
   }
 
-/* Hooks: statement macros (must be used inside DESCRIBE body) */
+/* ################################# */
+/* ========= HOOKS: ============ */
+/* ################################# */
+// NOTE: Must be used inside Describe body
 #define BEFORE_EACH(BODY)                                                                          \
   do {                                                                                             \
     test_registry_set_before_each(_test_group, +[](void* user) BODY, NULL, NULL);                  \
@@ -56,14 +53,19 @@ extern "C" {
     test_registry_set_after_all(_test_group, +[](void* user) BODY, NULL, NULL);                    \
   } while (0)
 
+/* ################################# */
+/* =========== TESTS: ============== */
+/* ################################# */
 #define TEST(testName, FN)                                                                         \
   do {                                                                                             \
-    register_test(_test_group, (testName), (FN), NULL, NULL);                                \
+    register_test(_test_group, (testName), (FN), NULL, NULL);                                      \
   } while (0)
 
 #define IT(testName, FN) TEST(testName, FN)
 
-/* Assertions */
+/* ################################# */
+/* ========= ASSERTIONS: ============ */
+/* ################################# */
 #define ASSERT_TRUE(cond)                                                                          \
   do {                                                                                             \
     if (!(cond))                                                                                   \
