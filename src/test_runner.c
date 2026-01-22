@@ -91,10 +91,9 @@ void test_runner_run_one(
 
 static TestRunSummary test_runner_run_group(TestRunner* runner, TestGroup* group)
 {
-
-  TestRunSummary* summary = {0};
+  TestRunSummary summary = {0};
   if (!group) {
-    return *summary;
+    return summary;
   }
 
   printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
@@ -107,13 +106,12 @@ static TestRunSummary test_runner_run_group(TestRunner* runner, TestGroup* group
 
   for (size_t i = 0; i < group->tests.count; ++i) {
     TestCase* test = &group->tests.data[i];
-    test_runner_run_one(runner, group, test, summary);
+    test_runner_run_one(runner, group, test, &summary);
   }
 
-  for (TestGroupNode* node = group->head; node; node = node->next) {
-    printf("\nThis message should not be visable\n");
-    test_runner_run_group(runner, node->group);
-  }
+    for (TestGroupNode* node = group->head; node; node = node->next) {
+      test_runner_run_group(runner, node->group);
+    }
 
   if (group->after_all) {
     begin_context(runner, group->name, "(after_all)");
@@ -121,7 +119,7 @@ static TestRunSummary test_runner_run_group(TestRunner* runner, TestGroup* group
     end_context(runner);
   }
 
-  return *summary;
+  return summary;
 }
 
 TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* registry)
