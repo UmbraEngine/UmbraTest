@@ -69,15 +69,21 @@ inline TestGroup* _test_group = nullptr;
 /* =========== TESTS: ============== */
 /* ################################# */
 
-#define TEST(testName, BODY)                                                                       \
-  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(                                                  \
-      _test_framework_test_body_reg_, __COUNTER__                                                  \
-  ) = [=]() {                                                                                      \
-    TestRegistry* _registry = test_registry_get_default_registry();                                 \
-    TestGroup* _group = _test_group ? _test_group : _registry->root;                                \
-    test_registry_register_test(_registry, _group, (testName), +[](void* user) BODY, NULL, NULL);  \
-    return true;                                                                                   \
-  }();
+#define TEST(testName, ...)                                                                        \
+  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(_test_framework_test_body_reg_, __COUNTER__) =    \
+      [=]() {                                                                                      \
+        TestRegistry* _registry = test_registry_get_default_registry();                            \
+        TestGroup* _group = _test_group ? _test_group : _registry->root;                           \
+        test_registry_register_test(                                                               \
+            _registry, _group, (testName),                                                         \
+            +[](void* user) {                                                                      \
+              (void)user;                                                                          \
+              __VA_ARGS__                                                                          \
+            },                                                                                     \
+            NULL, NULL                                                                             \
+        );                                                                                         \
+        return true;                                                                               \
+      }();
 
 #define TEST_FN(testName, FN)                                                                      \
   UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(_test_framework_test_fn_reg_, __COUNTER__) =      \
