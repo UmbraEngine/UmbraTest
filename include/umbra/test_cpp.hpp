@@ -7,33 +7,30 @@ extern "C" {
 #include "test_group.h"
 }
 
-
 /* ##################################### */
 /* ========= MACRO HELPERS: ============ */
 /* ##################################### */
-
 
 #define MACRO_CAT2(a, b) a##b
 #define MACRO_CAT(a, b) MACRO_CAT2(a, b)
 
 #if __cplusplus >= 201703L
-  #define UMBRA_MAYBE_UNUSED [[maybe_unused]]
+#define UMBRA_MAYBE_UNUSED [[maybe_unused]]
 #elif defined(__GNUC__) || defined(__clang__)
-  #define UMBRA_MAYBE_UNUSED __attribute__((unused))
+#define UMBRA_MAYBE_UNUSED __attribute__((unused))
 #else
-  #define UMBRA_MAYBE_UNUSED
+#define UMBRA_MAYBE_UNUSED
 #endif
-
 
 /* ################################# */
 /* ========= DESCRIBE: ============ */
 /* ################################# */
 
+inline TestGroup* _test_group = nullptr;
 
 #define DESCRIBE(group_name, BODY)                                                                 \
   static const bool MACRO_CAT(_test_framework_desc_reg_, __COUNTER__) = []() {                     \
     TestRegistry* _test_registry = test_registry_get_default_registry();                           \
-    static TestGroup* _test_group = nullptr;                                                       \
     TestGroup* _parent = _test_group != nullptr ? _test_group : _test_registry->root;              \
     TestGroup* _child = test_registry_get_child_group(_test_registry, _parent, (group_name));      \
     TestGroup* _saved = _test_group;                                                               \
@@ -73,18 +70,21 @@ extern "C" {
 /* ################################# */
 
 #define TEST(testName, BODY)                                                                       \
-  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(_test_framework_test_body_reg_, __COUNTER__) = [=]() {               \
-    test_registry_register_test(                                                                   \
-        _test_registry, _test_group, (testName), +[](void* user) BODY, NULL, NULL                  \
-    );                                                                                             \
-    return true;                                                                                   \
-  }();                                                                                               \
-
-#define TEST_FN(testName, FN)                                                                      \
-  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(_test_framework_test_fn_reg_, __COUNTER__) = [=]() {                 \
-    test_registry_register_test(_test_registry, _test_group, (testName), (FN), NULL, NULL);        \
+  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(                                                  \
+      _test_framework_test_body_reg_, __COUNTER__                                                  \
+  ) = [=]() {                                                                                      \
+    TestRegistry* _registry = test_registry_get_default_registry();                                 \
+    TestGroup* _group = _test_group ? _test_group : _registry->root;                                \
+    test_registry_register_test(_registry, _group, (testName), +[](void* user) BODY, NULL, NULL);  \
     return true;                                                                                   \
   }();
+
+#define TEST_FN(testName, FN)                                                                      \
+  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(_test_framework_test_fn_reg_, __COUNTER__) =      \
+      [=]() {                                                                                      \
+        test_registry_register_test(_test_registry, _test_group, (testName), (FN), NULL, NULL);    \
+        return true;                                                                               \
+      }();
 
 #define IT(testName, BODY) TEST(testName, BODY)
 #define IT_FN(testName, FN) TEST_FN(testName, FN)

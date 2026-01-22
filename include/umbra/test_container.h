@@ -16,7 +16,7 @@ typedef struct TestContainer {
 
 void test_container_init(TestContainer* test_container);
 void test_container_grow(TestContainer* container, size_t new_capacity);
-TestCase* test_container_push(TestContainer* self, TestCase item);
+void test_container_push(TestContainer* self, TestCase item);
 void test_container_free(TestContainer* self);
 
 #ifdef __cplusplus

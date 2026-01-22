@@ -31,14 +31,14 @@ test_registry_add_child_to_group(TestRegistry* registry, TestGroup* parent, cons
   node->group = group;
   node->next = NULL;
 
-  if (group->tail) {
-    group->tail->next = node;
+  if (parent->tail) {
+    parent->tail->next = node;
   }
   else {
-    group->head = node;
+    parent->head = node;
   }
-  group->tail = node;
-  group->length += 1;
+  parent->tail = node;
+  parent->length += 1;
 
   return group;
 }
@@ -134,6 +134,10 @@ void test_registry_register_test(
     TestTeardownFn teardownFn
 )
 {
+  if (!group) {
+    fprintf(stderr, "UmbraTest: attempted to register test '%s' with NULL group\n", test_name);
+    abort();
+  }
   TestCase test = {0};
   test.name = test_registry_strdup(registry, test_name);
   test.fn = fn;
@@ -141,6 +145,11 @@ void test_registry_register_test(
   test.teardown = teardownFn;
 
   test_container_push(&group->tests, test);
+
+  fprintf(
+      stderr, "REGISTER TEST: '%s' into group=%p (%s)\n", test_name, (void*)group,
+      group ? group->name : "NULL"
+  );
 }
 
 static void set_hook(

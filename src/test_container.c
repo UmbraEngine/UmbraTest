@@ -23,14 +23,13 @@ void test_container_grow(TestContainer* container, size_t new_capacity)
   container->capacity = new_capacity;
 }
 
-TestCase* test_container_push(TestContainer* test_container, TestCase item)
+void test_container_push(TestContainer* test_container, TestCase item)
 {
   if (test_container->count >= test_container->capacity) {
     size_t new_capacity = test_container->capacity == 0 ? 8 : test_container->capacity * 2;
     test_container_grow(test_container, new_capacity);
   }
   test_container->data[test_container->count++] = item;
-  return &test_container->data[test_container->count++];
 }
 
 void test_container_free(TestContainer* test_container)
