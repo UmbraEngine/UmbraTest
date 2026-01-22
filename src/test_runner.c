@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-
+#include <assert.h>
 
 static TestRunner* g_runner = NULL;
 
@@ -24,7 +24,7 @@ void test_runner_init(TestRunner* runner)
   memset(runner, 0, sizeof(*runner));
 }
 
-void test_fail(const char* file, int line, const char* fmt, ...)
+void test_runner_test_fail(const char* file, int line, const char* fmt, ...)
 {
   if (!g_runner || !g_runner->in_test) {
     fprintf(stderr, "%s:%d: test failure outside of running test\n", file, line);
@@ -36,7 +36,7 @@ void test_fail(const char* file, int line, const char* fmt, ...)
     return;
   }
 
-  g_runner->current_failures += 1;
+  g_runner->is_failure += 1;
   g_runner->total_failures += 1;
 
   fprintf(
@@ -50,14 +50,14 @@ void test_fail(const char* file, int line, const char* fmt, ...)
   fprintf(stderr, "\n");
 }
 
-void run_one(
+void test_runner_run_one(
     TestRunner* runner,
     const TestGroup* group,
     const TestCase* test,
     TestRunSummary* summary
 )
 {
-  runner->current_failures = 0;
+  runner->is_failure = 0;
 
   if (group->before_each) {
     begin_context(runner, group->name, "(before_each)");
@@ -76,11 +76,11 @@ void run_one(
   }
 
   summary->total += 1;
-  if (runner->current_failures > 0) {
+  if (runner->is_failure > 0) {
     summary->failed += 1;
     fprintf(
         stderr, "FAILED [%s] %s (%d failures)\n", check_group_name(group->name), test->name,
-        runner->current_failures
+        runner->is_failure
     );
   }
   else {
@@ -89,28 +89,56 @@ void run_one(
   }
 }
 
+static TestRunSummary test_runner_run_group(TestRunner* runner, TestGroup* group)
+{
+
+  TestRunSummary* summary = {0};
+  if (!group) {
+    return *summary;
+  }
+
+  printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
+
+  if (group->before_all) {
+    begin_context(runner, group->name, "(before_all)");
+    group->before_all(group->hook_user);
+    end_context(runner);
+  }
+
+  for (size_t i = 0; i < group->tests.count; ++i) {
+    TestCase* test = &group->tests.data[i];
+    test_runner_run_one(runner, group, test, summary);
+  }
+
+  for (TestGroupNode* node = group->head; node; node = node->next) {
+    printf("\nThis message should not be visable\n");
+    test_runner_run_group(runner, node->group);
+  }
+
+  if (group->after_all) {
+    begin_context(runner, group->name, "(after_all)");
+    group->after_all(group->hook_user);
+    end_context(runner);
+  }
+
+  return *summary;
+}
+
 TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* registry)
 {
-  TestRunSummary summary = {0};
   g_runner = runner;
 
-  for (size_t gi = 0; gi < registry->count; ++gi) {
-    const TestGroup* group = &registry->groups[gi];
-    printf("\n[%s]\n", group->name);
-    if (group->before_all) {
-      begin_context(runner, group->name, "(after_all)");
-      group->before_all(group->hook_user);
-      end_context(runner);
-    }
-    for (size_t ti = 0; ti < group->count; ++ti) {
-      begin_context(runner, group->name, "(after_all)");
-      run_one(runner, group, &group->tests[ti], &summary);
-      end_context(runner);
-    }
-    if (group->after_all) {
-      group->after_all(group->hook_user);
-    }
+  if (!g_runner) {
+    fprintf(stderr, "[ERROR]: Runner was unable to be set\n");
+    abort();
   }
+
+  if (!registry && !registry->root) {
+    fprintf(stderr, "[ERROR]: root TestGroup was unable to be set on default registry\n");
+    abort();
+  }
+
+  TestRunSummary summary = test_runner_run_group(runner, registry->root);
 
   g_runner = NULL;
 

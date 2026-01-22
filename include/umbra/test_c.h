@@ -4,6 +4,9 @@
 #include "test_case.h"
 #include "test_group.h"
 
+// MAIN QUEST: This implementation has rotted since working on the C++ Macros
+// this needs a refactor to meet the new spec
+
 #define MACRO_CAT2(a, b) a##b
 #define MACRO_CAT(a, b) MACRO_CAT2(a, b)
 
@@ -73,7 +76,7 @@
 #define ASSERT_TRUE(cond)                                                                          \
   do {                                                                                             \
     if (!(cond)) {                                                                                 \
-      test_fail(__FILE__, __LINE__, "ASSERT_TRUE failed: %s", #cond);                              \
+      test_runner_test_fail(__FILE__, __LINE__, "ASSERT_TRUE failed: %s", #cond);                              \
     }                                                                                              \
   } while (0)
 
@@ -82,14 +85,14 @@
     int _a = (a);                                                                                  \
     int _b = (b);                                                                                  \
     if (_a != _b) {                                                                                \
-      test_fail(__FILE__, __LINE__, "ASSERT_EQUAL_INT failed: %d != %d", _a, _b);                  \
+      test_runner_test_fail(__FILE__, __LINE__, "ASSERT_EQUAL_INT failed: %d != %d", _a, _b);                  \
     }                                                                                              \
   } while (0)
 
 #define REQUIRE_TRUE(cond)                                                                         \
   do {                                                                                             \
     if (!(cond)) {                                                                                 \
-      test_fail(__FILE__, __LINE__, "REQUIRE_TRUE failed: %s", #cond);                             \
+      test_runner_test_fail(__FILE__, __LINE__, "REQUIRE_TRUE failed: %s", #cond);                             \
       return;                                                                                      \
     }                                                                                              \
   } while (0)

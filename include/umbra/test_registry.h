@@ -1,5 +1,4 @@
 #pragma once
-#include <stdint.h>
 #include <stdlib.h>
 #include "test_case.h"
 #include "test_group.h"
@@ -9,16 +8,21 @@ extern "C" {
 #endif
 
 typedef struct {
-  TestGroup* groups;
+  TestGroup* root;
   size_t count;
   size_t capacity;
 } TestRegistry;
 
 void test_registry_init(TestRegistry* registry);
 void test_registry_free(TestRegistry* registry);
-TestRegistry* test_default_registry(void);
-TestGroup* test_registry_get_group(TestRegistry* registry, const char* group_name);
-void register_test(
+void* test_registry_alloc(TestRegistry* registry, size_t size);
+char* test_registry_strdup(TestRegistry* registry, const char* string);
+TestRegistry* test_registry_get_default_registry(void);
+TestGroup* test_registry_find_or_create_group(TestRegistry* registry, const char* group_name);
+TestGroup*
+test_registry_get_child_group(TestRegistry* registry, TestGroup* parent, const char* group_name);
+void test_registry_register_test(
+    TestRegistry* registry,
     TestGroup* group,
     const char* test_name,
     TestCaseFn fn,

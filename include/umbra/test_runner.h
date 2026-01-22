@@ -18,7 +18,7 @@ typedef struct {
   const char* current_group;
   const char* current_test;
 
-  int current_failures;
+  int is_failure;
   int total_failures;
 } TestRunner;
 
@@ -30,7 +30,7 @@ void run_one(
     const TestCase* test,
     TestRunSummary* summary
 );
-void test_fail(const char* file, int line, const char* fmt, ...);
+void test_runner_test_fail(const char* file, int line, const char* fmt, ...);
 
 #ifdef __cplusplus
 }
