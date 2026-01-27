@@ -146,10 +146,12 @@ void test_registry_register_test(
 
   test_container_push(&group->tests, test);
 
+#ifdef ENABLE_DEBUG
   fprintf(
       stderr, "REGISTER TEST: '%s' into group=%p (%s)\n", test_name, (void*)group,
       group ? group->name : "NULL"
   );
+#endif /* ifdef ENABLE_DEBUG */
 }
 
 static void set_hook(

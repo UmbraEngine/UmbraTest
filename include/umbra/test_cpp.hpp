@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include "test_assertions.hpp"
 extern "C" {
 #include "test_runner.h"
 #include "test_registry.h"
@@ -109,34 +110,9 @@ inline TestGroup* _test_group = nullptr;
       test_runner_test_fail(__FILE__, __LINE__, "ASSERT_TRUE failed: %s", #cond);                  \
   } while (0)
 
-#define ASSERT_EQUAL_INT(a, b)                                                                     \
+#define ASSERT_EQUAL(a, b)                                                                         \
   do {                                                                                             \
-    int _a = (a);                                                                                  \
-    int _b = (b);                                                                                  \
-    if (_a != _b)                                                                                  \
-      test_runner_test_fail(__FILE__, __LINE__, "ASSERT_EQUAL_INT failed: %d != %d", _a, _b);      \
-  } while (0)
-
-#define ASSERT_ARRAY_EQUAL_INT(a, b)                                                               \
-  do {                                                                                             \
-    int _a[ARRAY_SIZE(a)];                                                                         \
-    std::copy(std::begin(a), std::end(a), std::begin(_a));                                         \
-    int _b[ARRAY_SIZE(b)];                                                                         \
-    std::copy(std::begin(b), std::end(b), std::begin(_b));                                         \
-    if (ARRAY_SIZE(_a) != ARRAY_SIZE(_b)) {                                                        \
-      test_runner_test_fail(                                                                       \
-          __FILE__, __LINE__,                                                                      \
-          "ASSERT_ARRAY_EQUAL_INT failed: %d != %d, arrays are not the same size", _a, _b          \
-      );                                                                                           \
-    }                                                                                              \
-    for (size_t i = 0; i < ARRAY_SIZE(_a); ++i) {                                                  \
-      if (_a[i] != _b[i]) {                                                                        \
-        test_runner_test_fail(                                                                     \
-            __FILE__, __LINE__,                                                                    \
-            "ASSERT_ARRAY_EQUAL_INT failed: %d != %d, arrays contain different values", _a, _b     \
-        );                                                                                         \
-      }                                                                                            \
-    }                                                                                              \
+    ::Umbra::Test::Assertions::assert_equal((a), (b), __FILE__, __LINE__);                         \
   } while (0)
 
 #define REQUIRE_TRUE(cond)                                                                         \

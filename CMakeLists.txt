@@ -1,47 +1,45 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(UmbraTest VERSION 1.0.0 LANGUAGES C)
+project(
+  UmbraTest
+  VERSION 1.0.0
+  LANGUAGES C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # -------------------------
 # Library target
 # -------------------------
-add_library(umbra_test STATIC
-  src/test_case.c
-  src/test_group.c
-  src/test_registry.c
-  src/test_container.c
-  src/test_runner.c
-)
+add_library(
+  umbra_test STATIC src/test_case.c src/test_group.c src/test_registry.c
+                    src/test_container.c src/test_runner.c)
 
-target_include_directories(umbra_test
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
+target_include_directories(
+  umbra_test PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                    $<INSTALL_INTERFACE:include>)
 
 target_compile_features(umbra_test PUBLIC c_std_99)
-set_target_properties(umbra_test PROPERTIES
-  C_EXTENSIONS OFF
-)
+set_target_properties(umbra_test PROPERTIES C_EXTENSIONS OFF)
 
 # -------------------------
 # Output dirs (optional)
 # -------------------------
-set_target_properties(umbra_test PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
+set_target_properties(
+  umbra_test
+  PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 foreach(OUTPUTCONFIG Debug Release RelWithDebInfo MinSizeRel)
   string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-  set_target_properties(umbra_test PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_BINARY_DIR}/lib/${OUTPUTCONFIG}"
-    LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_BINARY_DIR}/lib/${OUTPUTCONFIG}"
-    RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_BINARY_DIR}/bin/${OUTPUTCONFIG}"
-  )
+  set_target_properties(
+    umbra_test
+    PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER}
+               "${CMAKE_BINARY_DIR}/lib/${OUTPUTCONFIG}"
+               LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER}
+               "${CMAKE_BINARY_DIR}/lib/${OUTPUTCONFIG}"
+               RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER}
+               "${CMAKE_BINARY_DIR}/bin/${OUTPUTCONFIG}")
 endforeach()
 
 # -------------------------
@@ -54,10 +52,20 @@ else()
 endif()
 
 # -------------------------
-# Build define for shared 
+# Build define for shared
 # -------------------------
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(umbra_test PRIVATE UMBRA_BUILD_DLL)
+endif()
+
+# -------------------------
+# Debug Option
+# -------------------------
+
+option(ENABLE_DEBUG "Compile in extra Debug logging" OFF)
+
+if(ENABLE_DEBUG)
+  add_definitions(-DENABLE_DEBUG)
 endif()
 
 # -------------------------
@@ -67,10 +75,7 @@ option(UMBRATEST_BUILD_TESTS "Build UmbraTest tests" ON)
 
 if(UMBRATEST_BUILD_TESTS)
   enable_language(CXX)
-  add_executable(test_UmbraTest
-    test/test_main.cpp
-    test/example.test.cpp
-  )
+  add_executable(test_UmbraTest test/test_main.cpp test/example.test.cpp)
   target_link_libraries(test_UmbraTest PRIVATE umbra_test)
 
   # tests are C++
@@ -93,8 +98,7 @@ install(
   EXPORT UmbraTestTargets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
@@ -102,5 +106,4 @@ install(
   EXPORT UmbraTestTargets
   FILE UmbraTestTargets.cmake
   NAMESPACE Umbra::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UmbraTest
-)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UmbraTest)

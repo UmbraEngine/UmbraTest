@@ -89,19 +89,34 @@ void test_runner_run_one(
   }
 }
 
-static TestRunSummary* test_runner_run_group(TestRunner* runner, TestGroup* group, TestRunSummary* summary)
+static TestRunSummary*
+test_runner_run_group(TestRunner* runner, TestGroup* group, TestRunSummary* summary)
 {
   if (!group) {
     return summary;
   }
-  fprintf(stderr, "[%s] head=%p tail=%p\n", group->name, (void*)group->head, (void*)group->tail);
 
-  printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
-
+#ifdef ENABLE_DEBUG
   fprintf(
-      stderr, "[%s] tests: count=%zu cap=%zu data=%p\n", group->name, group->tests.count,
+      stderr, "\n[DEBUG] [%s] head=%p tail=%p\n", group->name, (void*)group->head,
+      (void*)group->tail
+  );
+#endif
+
+#ifdef ENABLE_DEBUG
+  printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
+#else
+  if (group->tests.count > 0) {
+    printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
+  }
+#endif
+
+#ifdef ENABLE_DEBUG
+  fprintf(
+      stderr, "[DEBUG] [%s] tests: count=%zu cap=%zu data=%p\n", group->name, group->tests.count,
       group->tests.capacity, (void*)group->tests.data
   );
+#endif
 
   if (group->tests.count > group->tests.capacity) {
     fprintf(stderr, "BROKEN CONTAINER: count > capacity\n");

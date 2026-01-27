@@ -2,13 +2,19 @@
 #include <umbra/test.h>
 
 DESCRIBE("Example Test", {
-  DESCRIBE("Math", { TEST("Add", { ASSERT_EQUAL_INT(1, 1); }); });
+  DESCRIBE("Math", { TEST("Add", { ASSERT_EQUAL(1, 1); }); });
   DESCRIBE("Arrays", {
-    TEST("Compare", {
+    TEST("Compare C Style Array", {
       int arr1[] = {1, 2};
-      int arr2[] = {1, 3, 2};
+      int arr2[] = {1, 2};
 
-      ASSERT_ARRAY_EQUAL_INT(arr1, arr2);
+      ASSERT_EQUAL(arr1, arr2);
+    });
+    TEST("Compare Vectors", {
+      std::vector<int> arr1 = {1, 2};
+      std::vector<int> arr2 = {1, 2};
+
+      ASSERT_EQUAL(arr1, arr2);
     });
   });
 });
