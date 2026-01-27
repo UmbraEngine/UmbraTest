@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <array>
+#include <algorithm>
 extern "C" {
 #include "test_runner.h"
 #include "test_registry.h"
@@ -22,6 +25,8 @@ extern "C" {
 #define UMBRA_MAYBE_UNUSED
 #endif
 
+#define ARRAY_SIZE(X) (sizeof(X) / sizeof((X)[0]))
+
 /* ################################# */
 /* ========= DESCRIBE: ============ */
 /* ################################# */
@@ -29,7 +34,7 @@ extern "C" {
 inline TestGroup* _test_group = nullptr;
 
 #define DESCRIBE(group_name, BODY)                                                                 \
-  static const bool MACRO_CAT(_test_framework_desc_reg_, __COUNTER__) = []() {                     \
+  UMBRA_MAYBE_UNUSED static const bool MACRO_CAT(_test_framework_desc_reg_, __COUNTER__) = []() {  \
     TestRegistry* _test_registry = test_registry_get_default_registry();                           \
     TestGroup* _parent = _test_group != nullptr ? _test_group : _test_registry->root;              \
     TestGroup* _child = test_registry_get_child_group(_test_registry, _parent, (group_name));      \
@@ -110,6 +115,28 @@ inline TestGroup* _test_group = nullptr;
     int _b = (b);                                                                                  \
     if (_a != _b)                                                                                  \
       test_runner_test_fail(__FILE__, __LINE__, "ASSERT_EQUAL_INT failed: %d != %d", _a, _b);      \
+  } while (0)
+
+#define ASSERT_ARRAY_EQUAL_INT(a, b)                                                               \
+  do {                                                                                             \
+    int _a[ARRAY_SIZE(a)];                                                                         \
+    std::copy(std::begin(a), std::end(a), std::begin(_a));                                         \
+    int _b[ARRAY_SIZE(b)];                                                                         \
+    std::copy(std::begin(b), std::end(b), std::begin(_b));                                         \
+    if (ARRAY_SIZE(_a) != ARRAY_SIZE(_b)) {                                                        \
+      test_runner_test_fail(                                                                       \
+          __FILE__, __LINE__,                                                                      \
+          "ASSERT_ARRAY_EQUAL_INT failed: %d != %d, arrays are not the same size", _a, _b          \
+      );                                                                                           \
+    }                                                                                              \
+    for (size_t i = 0; i < ARRAY_SIZE(_a); ++i) {                                                  \
+      if (_a[i] != _b[i]) {                                                                        \
+        test_runner_test_fail(                                                                     \
+            __FILE__, __LINE__,                                                                    \
+            "ASSERT_ARRAY_EQUAL_INT failed: %d != %d, arrays contain different values", _a, _b     \
+        );                                                                                         \
+      }                                                                                            \
+    }                                                                                              \
   } while (0)
 
 #define REQUIRE_TRUE(cond)                                                                         \
