@@ -1,12 +1,14 @@
 #include "umbra/test_runner.h"
 #include "umbra/test_group.h"
-#include "umbra/test_log.h"
+#include "umbra/test_log.hpp"
+#include <source_location>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
 
 static TestRunner* g_runner = NULL;
+using namespace Umbra::Test::Log;
 
 static void begin_context(TestRunner* runner, const char* group_name, const char* test_name)
 {
@@ -82,14 +84,15 @@ void test_runner_run_one(
   summary->total += 1;
   if (runner->is_failure > 0) {
     summary->failed += 1;
-    LOG_PRINT(
-        LOG_COLOR_RED, "FAILED [%s] %s (%d failures)\n", check_group_name(group->name), test->name,
-        runner->is_failure
-    );
+    //testLogPrint(LogColor::Blue, "Hello %d", summary->failed);
+    // testLogPrint(
+    //     LogColor::Red, "FAILED [%s] %s (%d failures)\n",
+    //     check_group_name(group->name), *test->name, runner->is_failure
+    // );
   }
   else {
     summary->passed += 1;
-    LOG_PRINT(LOG_COLOR_GREEN, "\nPASS [%s] %s", check_group_name(group->name), test->name);
+    TEST_LOG_PRINT(2, "\nPASS [%s] %s", check_group_name(group->name), test->name);
   }
 }
 
@@ -108,10 +111,10 @@ test_runner_run_group(TestRunner* runner, TestGroup* group, TestRunSummary* summ
 #endif
 
 #ifdef ENABLE_DEBUG
-  LOG_PRINT(LOG_COLOR_YELLOW, "\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
+  TEST_LOG_PRINT(LOG_COLOR_YELLOW, "\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
 #else
   if (strcmp(group->name, "ROOT")) {
-    LOG_PRINT(LOG_COLOR_YELLOW, "\n[%s]", group->name);
+    TEST_LOG_PRINT_C(2, "\n[%s]", group->name);
   }
 #endif
 
@@ -184,7 +187,7 @@ TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* regis
   printf(
       LOG_COLOR_CODE_WHITE "\nSummary: " LOG_COLOR_CODE_YELLOW "%d total" LOG_COLOR_CODE_DEFAULT
                            ", " LOG_COLOR_CODE_GREEN "%d passed" LOG_COLOR_CODE_DEFAULT
-                           ", " LOG_COLOR_CODE_RED "%d failed\n\n" LOG_COLOR_CODE_DEFAULT ,
+                           ", " LOG_COLOR_CODE_RED "%d failed\n\n" LOG_COLOR_CODE_DEFAULT,
       summary.total, summary.passed, summary.failed
   );
   return summary;
