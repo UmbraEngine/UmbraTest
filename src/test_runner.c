@@ -1,5 +1,6 @@
 #include "umbra/test_runner.h"
 #include "umbra/test_group.h"
+#include "umbra/test_log.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -27,12 +28,15 @@ void test_runner_init(TestRunner* runner)
 void test_runner_test_fail(const char* file, int line, const char* fmt, ...)
 {
   if (!g_runner || !g_runner->in_test) {
-    fprintf(stderr, "%s:%d: test failure outside of running test\n", file, line);
+    fprintf(
+        stderr, LOG_COLOR_CODE_RED TAG_ERROR "%s:%d: test failure outside of running test\n", file,
+        line
+    );
     va_list args;
     va_start(args, fmt);
     vfprintf(stderr, fmt, args);
     va_end(args);
-    fprintf(stderr, "\n");
+    fprintf(stderr, LOG_COLOR_CODE_DEFAULT "\n");
     return;
   }
 
@@ -78,14 +82,14 @@ void test_runner_run_one(
   summary->total += 1;
   if (runner->is_failure > 0) {
     summary->failed += 1;
-    fprintf(
-        stderr, "FAILED [%s] %s (%d failures)\n", check_group_name(group->name), test->name,
+    LOG_PRINT(
+        LOG_COLOR_RED, "FAILED [%s] %s (%d failures)\n", check_group_name(group->name), test->name,
         runner->is_failure
     );
   }
   else {
     summary->passed += 1;
-    printf("PASS [%s] %s\n", check_group_name(group->name), test->name);
+    LOG_PRINT(LOG_COLOR_GREEN, "\nPASS [%s] %s", check_group_name(group->name), test->name);
   }
 }
 
@@ -104,26 +108,31 @@ test_runner_run_group(TestRunner* runner, TestGroup* group, TestRunSummary* summ
 #endif
 
 #ifdef ENABLE_DEBUG
-  printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
+  LOG_PRINT(LOG_COLOR_YELLOW, "\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
 #else
-  if (group->tests.count > 0) {
-    printf("\n[%s] - Test Count: %zu\n", group->name, group->tests.count);
+  if (strcmp(group->name, "ROOT")) {
+    LOG_PRINT(LOG_COLOR_YELLOW, "\n[%s]", group->name);
   }
 #endif
 
 #ifdef ENABLE_DEBUG
-  fprintf(
-      stderr, "[DEBUG] [%s] tests: count=%zu cap=%zu data=%p\n", group->name, group->tests.count,
+  TEST_LOG_DEBUG(
+      "[%s] tests: count=%zu cap=%zu data=%p\n", group->name, group->tests.count,
       group->tests.capacity, (void*)group->tests.data
   );
 #endif
 
   if (group->tests.count > group->tests.capacity) {
-    fprintf(stderr, "BROKEN CONTAINER: count > capacity\n");
+    fprintf(
+        stderr, LOG_COLOR_CODE_RED "BROKEN CONTAINER: count > capacity\n" LOG_COLOR_CODE_DEFAULT
+    );
     abort();
   }
   if (group->tests.count > 0 && group->tests.data == NULL) {
-    fprintf(stderr, "BROKEN CONTAINER: count>0 but data==NULL\n");
+    fprintf(
+        stderr,
+        LOG_COLOR_CODE_RED "BROKEN CONTAINER: count>0 but data==NULL\n" LOG_COLOR_CODE_DEFAULT
+    );
     abort();
   }
 
@@ -140,6 +149,7 @@ test_runner_run_group(TestRunner* runner, TestGroup* group, TestRunSummary* summ
 
   for (TestGroupNode* node = group->head; node; node = node->next) {
     test_runner_run_group(runner, node->group, summary);
+    printf("\n");
   }
 
   if (group->after_all) {
@@ -156,12 +166,12 @@ TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* regis
   g_runner = runner;
 
   if (!g_runner) {
-    fprintf(stderr, "[ERROR]: Runner was unable to be set\n");
+    TEST_LOG_ERROR("%s", "Runner was unable to be set");
     abort();
   }
 
   if (!registry && !registry->root) {
-    fprintf(stderr, "[ERROR]: root TestGroup was unable to be set on default registry\n");
+    TEST_LOG_ERROR("%s", "root TestGroup was unable to be set on default registry");
     abort();
   }
 
@@ -172,7 +182,10 @@ TestRunSummary test_runner_run_all(TestRunner* runner, const TestRegistry* regis
   g_runner = NULL;
 
   printf(
-      "\nSummary: %d total, %d passed, %d failed\n", summary.total, summary.passed, summary.failed
+      LOG_COLOR_CODE_WHITE "\nSummary: " LOG_COLOR_CODE_YELLOW "%d total" LOG_COLOR_CODE_DEFAULT
+                           ", " LOG_COLOR_CODE_GREEN "%d passed" LOG_COLOR_CODE_DEFAULT
+                           ", " LOG_COLOR_CODE_RED "%d failed\n\n" LOG_COLOR_CODE_DEFAULT ,
+      summary.total, summary.passed, summary.failed
   );
   return summary;
 }
