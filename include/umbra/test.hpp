@@ -3,14 +3,12 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#include "test_assertions.hpp"
-extern "C" {
-#include "test_macro_helpers.h"
-#include "test_runner.h"
-#include "test_registry.h"
-#include "test_case.h"
-#include "test_group.h"
-}
+#include "test-assertions.hpp"
+#include "test-macro_helpers.h"
+#include "test-runner.h"
+#include "test-registry.h"
+#include "test-case.h"
+#include "test-group.h"
 
 /* ################################# */
 /* ========= DESCRIBE: ============ */
