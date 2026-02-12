@@ -21,6 +21,7 @@ public:
     TestGroup* FindOrCreateGroup(const char* groupName);
     
     TestGroup* GetChildGroup(TestGroup* parent, const char* groupName);
+    TestGroup* AddChildToGroup(TestGroup* parent, const char* groupName);
     
     void RegisterTest(
         TestGroup* group,

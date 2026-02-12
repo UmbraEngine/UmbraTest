@@ -1,4 +1,4 @@
-#include "test-group.hpp"
+#include "umbra/test-group.hpp"
 
 static const char* DEFAULT_GROUP_NAME = "Ungrouped";
 

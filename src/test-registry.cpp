@@ -1,6 +1,6 @@
-#include "test-registry.hpp"
-#include "test-case.hpp"
-#include "test-group.hpp"
+#include "umbra/test-registry.hpp"
+#include "umbra/test-case.hpp"
+#include "umbra/test-group.hpp"
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -17,9 +17,9 @@ static TestGroup* FindGroup(TestGroup* parent, const char* groupName)
     return nullptr;
 }
 
-static TestGroup* AddChildToGroup(TestRegistry* registry, TestGroup* parent, const char* groupName)
+TestGroup* TestRegistry::AddChildToGroup(TestGroup* parent, const char* groupName)
 {
-    auto group = std::make_unique<TestGroup>(registry->StoreString(groupName), parent);
+    auto group = std::make_unique<TestGroup>(this->StoreString(groupName), parent);
     TestGroup* groupPtr = group.get();
     parent->AddChildGroup(std::move(group));
     return groupPtr;
@@ -57,7 +57,7 @@ TestGroup* TestRegistry::GetChildGroup(TestGroup* parent, const char* groupName)
     TestGroup* existing = FindGroup(parent, groupName);
     if (existing)
         return existing;
-    return AddChildToGroup(this, parent, groupName);
+    return AddChildToGroup(parent, groupName);
 }
 
 void TestRegistry::RegisterTest(

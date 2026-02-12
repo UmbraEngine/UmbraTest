@@ -13,9 +13,13 @@ public:
   TestRunner();
   ~TestRunner() = default;
 
+  void RunOne(const TestGroup* group, const TestCase* test, TestRunSummary* summary);
+  TestRunSummary* RunGroup(TestGroup* group, TestRunSummary* summary);
   TestRunSummary RunAll(const TestRegistry* registry);
 
   void TestFail(const char* file, int line, const char* fmt, ...);
+  void BeginContext(const char* groupName, const char* testName);
+  void EndContext();
 
   bool IsInTest() const { return this->inTest; }
   const char* GetCurrentGroup() const { return this->currentGroup; }
@@ -24,7 +28,6 @@ public:
   int GetTotalFailures() const { return this->totalFailures; }
 
 private:
-  void RunOne(const TestGroup* group, const TestCase* test, TestRunSummary* summary);
 
   bool inTest;
   const char* currentGroup;
